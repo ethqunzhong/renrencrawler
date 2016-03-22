@@ -45,7 +45,7 @@ def FriendInfo(Ruid_info):
     try:
         Info_Flag = 0
         while Info_Flag == 0:
-            print u'请输入好友ID，可通过浏览器打开好友主页，在地址栏上找到好友ID'
+            print u'请输入好友ID，好友ID可以通过浏览器访问好友主页来查看，地址栏上面的一串数字'
             Friend_ID_info = raw_input(u"Friend_ID:   ")
             # Friend_ID_info=raw_input(u"请输入好友ID号(地址栏上8位数字): ")
             currentUrl = "http://www.renren.com/" + Friend_ID_info + "/profile?portal=homeFootprint&ref=home_footprint"
@@ -72,11 +72,12 @@ try:
     SleepTimeCount1 = 2
     driver = webdriver.PhantomJS()  # webdriver 支持PhantomJS伪浏览器驱动
     # executable_path="C:\phantomjs-2.1.1-windows\phantomjs.exe"
-    print u'欢迎使用这个小工具下载人人照片，日志，状态'
+    print u'欢迎使用本工具下载人人照片，日志，状态'
     print
 
     LoginFlag = 0
-    # ****************************登陆操作******************************
+    # 设置一个 BreakFlag 用来中途按键退出
+    # ****************************模拟登陆操作******************************
     while LoginFlag == 0:
         driver.get("http://www.renren.com")
 
@@ -98,8 +99,9 @@ try:
             Main_url = driver.current_url  # 获取当前页面的所有URL
             index1 = Main_url.find(r'renren.com/')
             User_ID = Main_url[index1 + 11:100]  # renren.com/ 以后的部分作为User_ID
-            AccountName = soup.title.contents[0]  # <title>人人网 - XXX的相册</title><meta charset="utf-8"/>
-            AccountName = AccountName[6:]   #待测试
+            AccountName = soup.title.contents[0]  # <title>人人网 - XXX</title><meta charset="utf-8"/>
+            # print AccountName
+            AccountName = AccountName[6:]  # XXX
             print u'登陆ID:' + User_ID + '     ' + u'用户名:' + AccountName
             print
             time.sleep(2)
@@ -108,7 +110,7 @@ try:
             LoginFlag = 0
             print u'登陆失败，请重新输入'
 
-    # *****************************选择用户**********************************
+    # *****************************选择用户进行下载**********************************
     DownloadFlag = 0
     while DownloadFlag == 0:
         # UserFlag=raw_input(u"1_self, 2_friend")
@@ -162,17 +164,15 @@ try:
                     current_path = './' + FriendName + u'/照片/' + title
                 else:
                     current_path = './' + AccountName + u'/照片/' + title
-                current_path = ProducePath(current_path)   # 以该路径名生成相应的文件夹
+                current_path = ProducePath(current_path)  # 以该路径名生成相应的文件夹
 
                 globalCount = 0;
-
 
                 link = each.contents[1]['href']
                 PhotoUrl = link
                 driver.get(PhotoUrl)
                 time.sleep(1)
                 soup = BeautifulSoup(driver.page_source, "lxml")
-
 
                 allImg = soup.find_all('div', class_="photo-box")  # ?????
                 for each1 in allImg:
@@ -252,7 +252,7 @@ try:
             data = soup.encode('UTF-8')
             WriteData(data, RizhiPath)
 
-        ##################################################### download status
+        # download status
         print
         print u'开始下载状态'
         if FriendFlag:
@@ -295,7 +295,7 @@ try:
                 time.sleep(2)
                 TempSource = driver.page_source
 
-        ##################################################### download complete
+        # download complete
         print
         print u'相册，日志，状态下载完成'
         print
