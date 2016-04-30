@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys  # 引入Keys类操作
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver import ActionChains
-from selenium.webdriver.common.action_chains import ActionChains  # 引入ActionChains鼠标操作类
-from selenium.webdriver.common.keys import Keys
-import time
+# from selenium.webdriver.common.keys import Keys  # 引入Keys类操作
+# from selenium.webdriver.support.ui import WebDriverWait
+# from selenium.webdriver import ActionChains
+# from selenium.webdriver.common.action_chains import ActionChains  # 引入ActionChains鼠标操作类
+# from selenium.webdriver.common.keys import Keys
 import sys
-from bs4 import BeautifulSoup
 import urllib2
+import time
+from bs4 import BeautifulSoup
 import urllib
 import os
 import re
@@ -70,7 +70,7 @@ def FriendInfo(Ruid_info):
 # ***************************************************************************
 try:
     SleepTimeCount1 = 2
-    driver = webdriver.PhantomJS()  # webdriver 支持PhantomJS伪浏览器驱动
+    driver = webdriver.PhantomJS()  # webdriver 支持PhantomJS伪浏览器驱动  不用打开浏览器了
     # executable_path="C:\phantomjs-2.1.1-windows\phantomjs.exe"
     print u'欢迎使用本工具下载人人照片，日志，状态'
     print
@@ -80,7 +80,6 @@ try:
     # ****************************模拟登陆操作******************************
     while LoginFlag == 0:
         driver.get("http://www.renren.com")
-
         LoginName = raw_input(u"please input the user email: ")
         LoginPassword = raw_input(u"input the password: ")
         # 控件属性例如id、name、等等 xpath语言参考文档
@@ -153,11 +152,11 @@ try:
         time.sleep(2)
 
         soup = BeautifulSoup(driver.page_source, "lxml")
-        PhotoInfo = soup.find_all('div', class_="album-info")
+        PhotoInfo = soup.find_all('div', class_="album-info")  # 抓取所有相册
         # 搜索当前tag的所有子节点，并判断是否符合过滤器的条件
         # 查找所有名字为 div 的tag ，通过 class_ 参数来搜索指定CSS类名的tag
         # 搜索相册标签
-        for each in PhotoInfo:
+        for each in PhotoInfo:  # 对每个相册里面的照片进行下载
             if each != None:
                 title = each.contents[1]['title']
                 if FriendFlag:
@@ -166,7 +165,7 @@ try:
                     current_path = './' + AccountName + u'/照片/' + title
                 current_path = ProducePath(current_path)  # 以该路径名生成相应的文件夹
 
-                globalCount = 0;
+                globalCount = 0
 
                 link = each.contents[1]['href']
                 PhotoUrl = link
@@ -174,13 +173,13 @@ try:
                 time.sleep(1)
                 soup = BeautifulSoup(driver.page_source, "lxml")
 
-                allImg = soup.find_all('div', class_="photo-box")  # ?????
+                allImg = soup.find_all('div', class_="photo-box")  # 找出当前相册所有照片
                 for each1 in allImg:
-                    imgUrl = each1.contents[1].contents[1]['data-viewer']
-                    index1 = imgUrl.find(r'url')
+                    imgUrl = each1.contents[1].contents[1]['data-viewer']  # .contents[]
+                    index1 = imgUrl.find(r'url')  # 返回url的索引index
                     index2 = imgUrl.find(r'.jpg')
                     Detail_Photo_Url = imgUrl[index1 + 6:index2 + 4]  # 图片所在的具体URL
-
+                    # print Detail_Photo_Url
                     imgPath = current_path + '/' + str(globalCount + 1) + '.jpg'
                     urllib.urlretrieve(Detail_Photo_Url, imgPath)
                     print imgPath
@@ -252,7 +251,7 @@ try:
             data = soup.encode('UTF-8')
             WriteData(data, RizhiPath)
 
-        # download status
+        # **************************download status***************************************
         print
         print u'开始下载状态'
         if FriendFlag:
@@ -271,7 +270,7 @@ try:
         TempSource = driver.page_source
         pattern = re.compile(r'<a.*?page-item.*?/a>', re.S)
         NumofPage = re.findall(pattern, TempSource)
-        if len(NumofPage) > 2:
+        if len(NumofPage) > 2:  # 至少有两个<a ... page-item .../a> 上一页 和 下一页
             PageFlag = 1
         else:
             PageFlag = 0
@@ -280,16 +279,17 @@ try:
         while PageFlag:
             StatusPath = current_path + '/page' + str(globalCount) + '.html'
             globalCount += 1
-            TempSource = re.sub(r'<iframe.*?id="webpagerengine".*?</iframe>', '', TempSource)
+            TempSource = re.sub(r'<iframe.*?id="webpagerengine".*?</iframe>', '', TempSource)  # 替换无用信息
             data = TempSource.encode('UTF-8')
 
             WriteData(data, StatusPath)
 
-            pattern = re.compile(r'<a.*?page-next.*?page-disable.*?/a>', re.S)
+            pattern = re.compile(r'<a.*?page-next.*?page-disable.*?/a>', re.S)  #最后一页的标志 page-disable
             NextPage = re.findall(pattern, TempSource)
-            if len(NextPage) > 0:  # 不能再翻页了
+            if len(NextPage) > 0:  # 到最后一页了。不能翻页了
                 PageFlag = 0
             else:  # 翻页
+                # id为 my-status-page 的 div,定位里面的<a></a> , a[NumofPage] 指向的是<a>下一页</a> 这个按钮的位置
                 Temp_str = "//div[@id='my-status-page']/a[" + str(len(NumofPage)) + "]"
                 driver.find_element_by_xpath(Temp_str).click()
                 time.sleep(2)
